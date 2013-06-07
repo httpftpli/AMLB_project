@@ -7,7 +7,7 @@
 
 uint32 Lang;									//语言选择 0=中文,1=英文
 uint8 Hz_Lib[1024*256];							//汉字库16*16点阵(实际占用256K字节)
-uint8 Hz_Lib24[1024*576];						//汉字库24*24点阵(实际占用576K字节)
+uint8 Hz_Lib20[1024*448];						//汉字库20*20点阵(实际占用448K字节)
 S_LcdMem LcdMem;
 
 const char *HZ_SuRuMiMa[][LANG_MAX]={"请输入密码:"," Password:"};
@@ -694,25 +694,21 @@ float d1,d2;
 }
 
 //===================================================================
-//功能: 显示一幅图片
-//x         : 起始横坐标
-//y         : 起始纵坐标
-//width   : 图片的宽度
-//height  : 图片的高度
-//*bmp   : 图片数据指针
+//功能:			显示一幅图片
+//参数:
+//		x,y:			起始坐标
+//		width:		图片的宽度
+//		height:		图片的高度
+//		bmp:		图片数据指针
+//修改时间:		2013-4-17
 //===================================================================
 void Dis_Picture(uint32 x,uint32 y,uint32 width,uint32 height,uint16 *bmp)
 {
-uint32 i,j;
-uint16 color;
-	for (i=y;i<height+y;i++) 
+uint32 i;
+	for(i=y;i<height+y;i++) 
 	{
-		for (j=x;j<width+x;j++) 
-		{
-			color=*bmp;
-	       		LCD_SetPixel(j,i,color);
-			bmp++;
- 	   	}
+		memcpy((uint8 *)(&LcdBuffer[SECTION_Y(x, i)][SECTION_X(x, i)]),(uint8 *)bmp,width*2);
+		bmp+=width;
 	}
 }
 
@@ -733,10 +729,10 @@ uint16 color;
 		for (j=x;j<width+x;j++) 
 		{
 			color=*bmp;
-	       	if(color!=filter)
-	       	{
-		       	LCD_SetPixel(j,i,color);
-	       	}
+		       	if(color!=filter)
+		       	{
+			       	LCD_SetPixel(j,i,color);
+		       	}
 			bmp++;
  	   	}
 	}
@@ -760,13 +756,13 @@ uint16 colorb;
 		for (j=x;j<width+x;j++) 
 		{
 			color=*bmp;
-	       	if(color!=filter)
-	       	{
-		       	LCD_SetPixel(j,i,color);
-	       	}
+		       	if(color!=filter)
+		       	{
+			       	LCD_SetPixel(j,i,color);
+		       	}
 			else
 			{
-				colorb=Lcd_BottomLogo[i-375][j];
+				colorb=Lcd_BottomLogo[i-LOGO_BotmY][j];
 				LCD_SetPixel(j,i,colorb);
 			}
 			bmp++;
@@ -824,7 +820,7 @@ uint32 addr;
 			}
 			else
 			{
-				LcdBuffer[y+i][x+j]=Lcd_BottomLogo[y-BOTTOM_LogoY+i][x-BOTTOM_LogoX+j];
+				LcdBuffer[y+i][x+j]=Lcd_BottomLogo[y-LOGO_BotmY+i][x-BOTTOM_LogoX+j];
 			}
 		}
 	}
@@ -859,12 +855,12 @@ uint32 i,j;
 uint32 addr;
 	if(font==FONT24) 
 	{
-		addr=(num+ASC_Num)*48;
-		for(i=0;i<24;i++)
+		addr=(num+ASC_Num)*40;
+		for(i=0;i<20;i++)
 		{
 			for(j=0;j<8;j++)
 			{
-				if(Asc12x24[addr+i*2]&(0x80>>j))
+				if(Asc10x20[addr+i*2]&(0x80>>j))
 				{
 					LCD_SetPixel(x+j,y+i,color_f);
 				}
@@ -873,9 +869,9 @@ uint32 addr;
 					LCD_SetPixel(x+j,y+i,color_b);
 				}
 			}
-			for(j=0;j<4;j++)
+			for(j=0;j<2;j++)
 			{
-				if(Asc12x24[addr+i*2+1]&(0x80>>j))
+				if(Asc10x20[addr+i*2+1]&(0x80>>j))
 				{
 					LCD_SetPixel(x+j+8,y+i,color_f);
 				}
@@ -930,7 +926,7 @@ uint32 addr;
 			}
 			else
 			{
-				LcdBuffer[y+i][x+j]=Lcd_BottomLogo[y-BOTTOM_LogoY+i][x-BOTTOM_LogoX+j];
+				LcdBuffer[y+i][x+j]=Lcd_BottomLogo[y-LOGO_BotmY+i][x-BOTTOM_LogoX+j];
 			}
 		}
 	}
@@ -1022,7 +1018,7 @@ uint32 addr;
 			}
 			else
 			{
-				LcdBuffer[y+i][x+j]=Lcd_BottomLogo[y-BOTTOM_LogoY+i][x-BOTTOM_LogoX+j];
+				LcdBuffer[y+i][x+j]=Lcd_BottomLogo[y-LOGO_BotmY+i][x-BOTTOM_LogoX+j];
 			}
 		}
 
@@ -1035,29 +1031,33 @@ uint32 addr;
 			}
 			else
 			{
-				LcdBuffer[y+i][x+8+j]=Lcd_BottomLogo[y-BOTTOM_LogoY+i][x-BOTTOM_LogoX+8+j];
+				LcdBuffer[y+i][x+8+j]=Lcd_BottomLogo[y-LOGO_BotmY+i][x-BOTTOM_LogoX+8+j];
 			}
 		}
 	}
 }
 
 //===================================================================
-//功能: 显示半角字符
-//x         : 起始横坐标
-//y         : 起始纵坐标
-//color_f  : 显示的前景色
-//color_b : 显示的前景色
+//功能:			显示半角字符(10*20点阵)
+//参数:
+//		num:
+//		x,y:			显示的起始坐标
+//		color_f:		显示的前景色
+//		color_b:		显示的背景色
+//返回:
+//说明:
+//修改时间:		2013-4-16
 //===================================================================
-void Dis_12x24(uint8 num,uint16 x,uint16 y,uint16 color_f,uint16 color_b)
+void Dis_10x20(uint8 num,uint16 x,uint16 y,uint16 color_f,uint16 color_b)
 {
 uint32 i,j;
 uint32 addr;
-	addr=num*2*24;
-	for(i=0;i<24;i++)
+	addr=num*40;
+	for(i=0;i<20;i++)
 	{
 		for(j=0;j<8;j++)
 		{
-			if(Asc12x24[addr+i*2]&(0x80>>j))
+			if(Asc10x20[addr+i*2]&(0x80>>j))
 			{
 				LCD_SetPixel(x+j,y+i,color_f);
 			}
@@ -1067,9 +1067,9 @@ uint32 addr;
 			}
 		}
 
-		for(j=0;j<4;j++)
+		for(j=0;j<2;j++)
 		{
-			if(Asc12x24[addr+i*2+1]&(0x80>>j))
+			if(Asc10x20[addr+i*2+1]&(0x80>>j))
 			{
 				LCD_SetPixel(x+j+8,y+i,color_f);
 			}
@@ -1082,31 +1082,34 @@ uint32 addr;
 }
 
 //===================================================================
-//功能: 			显示半角字符
-//x         : 起始横坐标
-//y         : 起始纵坐标
-//color_f  : 显示的前景色
-//color_b : 显示的前景色
-//修改时间:		2010-11-10
+//功能:			显示半角字符(10*20),不刷背景色
+//参数:
+//		num:
+//		x,y:			显示的起始坐标
+//		color_f:		显示的前景色
+//		color_b:		显示的背景色
+//返回:
+//说明:
+//修改时间:		2013-4-16
 //===================================================================
-void Dis_12x24Filter(uint8 num,uint16 x,uint16 y,uint16 color_f)
+void Dis_10x20Filter(uint8 num,uint16 x,uint16 y,uint16 color_f)
 {
 uint32 i,j;
 uint32 addr;
-	addr=num*2*24;
-	for(i=0;i<24;i++)
+	addr=num*40;
+	for(i=0;i<20;i++)
 	{
 		for(j=0;j<8;j++)
 		{
-			if(Asc12x24[addr+i*2]&(0x80>>j))
+			if(Asc10x20[addr+i*2]&(0x80>>j))
 			{
 				LCD_SetPixel(x+j,y+i,color_f);
 			}
 		}
 
-		for(j=0;j<4;j++)
+		for(j=0;j<2;j++)
 		{
-			if(Asc12x24[addr+i*2+1]&(0x80>>j))
+			if(Asc10x20[addr+i*2+1]&(0x80>>j))
 			{
 				LCD_SetPixel(x+j+8,y+i,color_f);
 			}
@@ -1115,7 +1118,7 @@ uint32 addr;
 }
 
 //===================================================================
-//功能:			显示24*24点阵字符
+//功能:			显示20*20点阵字符
 //参数:
 //		num:		全角字符的位置
 //		x,y:			显示位置的x,y坐标
@@ -1123,17 +1126,17 @@ uint32 addr;
 //		color_b:		显示的背景色
 //返回:
 //说明:
-//修改时间:		2013-3-27
+//修改时间:		2013-4-16
 //===================================================================
-void Dis_24x24(uint32 num,uint16 x,uint16 y,uint16 color_f,uint16 color_b)
+void Dis_20x20(uint32 num,uint16 x,uint16 y,uint16 color_f,uint16 color_b)
 {
 uint32 i,j;
 uint8 dat;
-uint8 dot[72];
+uint8 dot[60];
 uint32 addr;
-	addr=num*72;
-	memcpy(dot,Hz_Lib24+addr,72);
-	for(i=0;i<24;i++)
+	addr=num*60;
+	memcpy(dot,Hz_Lib20+addr,60);
+	for(i=0;i<20;i++)
 	{
 		dat=dot[i*3];
 		for(j=0;j<8;j++)
@@ -1162,7 +1165,7 @@ uint32 addr;
 		}
 
 		dat=dot[i*3+2];
-		for(j=0;j<8;j++)
+		for(j=0;j<4;j++)
 		{
 			if(dat&(0x80>>j))
 			{
@@ -1177,24 +1180,24 @@ uint32 addr;
 }
 
 //===================================================================
-//功能:			显示24*24点阵字符(不刷背景色)
+//功能:			显示20*20点阵字符(不刷背景色)
 //参数:
 //		num:		全角字符的位置
 //		x,y:			显示位置的x,y坐标
 //		color_f:		显示的前景色
 //返回:
 //说明:
-//修改时间:		2013-3-27
+//修改时间:		2013-4-16
 //===================================================================
-void Dis_24x24Filter(uint32 num,uint16 x,uint16 y,uint16 color_f)
+void Dis_20x20Filter(uint32 num,uint16 x,uint16 y,uint16 color_f)
 {
 uint32 i,j;
 uint8 dat;
-uint8 dot[72];
+uint8 dot[60];
 uint32 addr;
-	addr=num*72;
-	memcpy(dot,Hz_Lib24+addr,72);
-	for(i=0;i<24;i++)
+	addr=num*60;
+	memcpy(dot,Hz_Lib20+addr,60);
+	for(i=0;i<20;i++)
 	{
 		dat=dot[i*3];
 		for(j=0;j<8;j++)
@@ -1215,7 +1218,7 @@ uint32 addr;
 		}
 
 		dat=dot[i*3+2];
-		for(j=0;j<8;j++)
+		for(j=0;j<4;j++)
 		{
 			if(dat&(0x80>>j))
 			{
@@ -1284,21 +1287,24 @@ uint16 titlecolor;
 }
 
 //===================================================================
-//功能: 			显示半角字符
-//x         : 起始横坐标
-//y         : 起始纵坐标
-//color_f  : 显示的前景色
-//color_b : 显示的前景色
-//修改时间:		2010-11-10
+//功能:			显示半角字符(10*20),不刷背景色
+//参数:
+//		num:
+//		x,y:			显示的起始坐标
+//		color_f:		显示的前景色
+//		color_b:		显示的背景色
+//返回:
+//说明:
+//修改时间:		2013-4-16
 //===================================================================
-void Dis_12x24FilterTitle(uint8 num,uint16 x,uint16 y,uint16 color_f,S_Form *form)
+void Dis_10x20FilterTitle(uint8 num,uint16 x,uint16 y,uint16 color_f,S_Form *form)
 {
 uint32 i,j;
 uint32 addr;
 uint32 m;
 uint16 titlecolor;
-	addr=num*2*24;
-	for(i=0;i<24;i++)
+	addr=num*40;
+	for(i=0;i<20;i++)
 	{
 		//取出当前Y坐标的窗体标题栏背景色--------------
 		m=y+i-form->Y;		//当前行相对于窗体起始Y坐标的值	
@@ -1325,7 +1331,7 @@ uint16 titlecolor;
 	
 		for(j=0;j<8;j++)
 		{
-			if(Asc12x24[addr+i*2]&(0x80>>j))
+			if(Asc10x20[addr+i*2]&(0x80>>j))
 			{
 				LCD_SetPixel(x+j,y+i,color_f);
 			}
@@ -1335,9 +1341,9 @@ uint16 titlecolor;
 			}
 		}
 
-		for(j=0;j<4;j++)
+		for(j=0;j<2;j++)
 		{
-			if(Asc12x24[addr+i*2+1]&(0x80>>j))
+			if(Asc10x20[addr+i*2+1]&(0x80>>j))
 			{
 				LCD_SetPixel(x+j+8,y+i,color_f);
 			}
@@ -1434,24 +1440,24 @@ uint16 titlecolor;
 //		form:		窗体数据结构指针
 //返回:
 //说明:
-//修改时间:		2013-3-27
+//修改时间:		2013-4-16
 //===================================================================
-void Dis_24x24FilterTitle(uint32 num,uint16 x,uint16 y,uint16 color_f,S_Form *form)
+void Dis_20x20FilterTitle(uint32 num,uint16 x,uint16 y,uint16 color_f,S_Form *form)
 {
 uint32 i,j;
 uint8 dat;
-uint8 dot[72];
+uint8 dot[60];
 uint32 addr;
 uint32 m;
 uint16 titlecolor;
-	addr=num*72;
-	memcpy(dot,Hz_Lib24+addr,72);
-	for(i=0;i<24;i++)
+	addr=num*60;
+	memcpy(dot,Hz_Lib20+addr,60);
+	for(i=0;i<20;i++)
 	{
 		//取出当前Y坐标的窗体标题栏背景色--------------
 		m=y+i-form->Y;		//当前行相对于窗体起始Y坐标的值	
 		//标题栏高度大于24时的背景色处理------
-		if(form->TitleHeight>24)
+		if(form->TitleHeight>20)
 		{
 			if(m<12)
 			{
@@ -1498,7 +1504,7 @@ uint16 titlecolor;
 		}
 
 		dat=dot[i*3+2];
-		for(j=0;j<8;j++)
+		for(j=0;j<4;j++)
 		{
 			if(dat&(0x80>>j))
 			{
@@ -1531,8 +1537,8 @@ void (*call_full)(uint32 num, uint16 x, uint16 y, uint16 color_f, S_Form *form);
 void (*call_half)(uint8 num, uint16 x, uint16 y, uint16 color_f, S_Form *form);
 	if(font==FONT24) 
 	{
-		call_full=Dis_24x24FilterTitle;
-		call_half=Dis_12x24FilterTitle;
+		call_full=Dis_20x20FilterTitle;
+		call_half=Dis_10x20FilterTitle;
 		full_step=FONT24;
 		half_step=FONT24>>1;
 	}
@@ -1586,8 +1592,8 @@ uint32 step;
 void (*call_sub)(uint8 num, uint16 x, uint16 y, uint16 color_f, S_Form * form);
 	if(font==FONT24) 
 	{	
-		step=12;
-		call_sub=Dis_12x24FilterTitle;
+		step=FONT24>>1;
+		call_sub=Dis_10x20FilterTitle;
 	}
 	else 
 	{
@@ -1725,7 +1731,7 @@ void Dis_Char(uint8 num,uint16 x,uint16 y,uint32 font,uint16 color_f,uint16 colo
 	num-=32;
 	if(font==FONT24)
 	{
-		Dis_12x24(num,x,y,color_f,color_b);
+		Dis_10x20(num,x,y,color_f,color_b);
 	}
 	else
 	{
@@ -1756,8 +1762,8 @@ void (*call_half)(uint8 num, uint16 x, uint16 y, uint16 color_f, uint16 color_b)
 	//字体为24点阵处理----------
 	if(font==FONT24) 
 	{
-		call_full=Dis_24x24;
-		call_half=Dis_12x24;
+		call_full=Dis_20x20;
+		call_half=Dis_10x20;
 		full_step=FONT24;
 		half_step=FONT24>>1;
 	}
@@ -1861,7 +1867,7 @@ uint32 tol;					//半角字符的总个数
 uint32 i,m;
 uint32 step;					//半角字符占用的象素宽度
 	//字体为24点阵处理----------
-	if(font==FONT24) step=12;
+	if(font==FONT24) step=FONT24>>1;
 	else step=8;
 	tol=0;
 	//若不是左对齐显示，则计算显示的起始x坐标----
@@ -1975,8 +1981,8 @@ void (*call_half)(uint8 num, uint16 x, uint16 y, uint16 color_f);
 	//字体为24点阵处理----------
 	if(font==FONT24) 
 	{
-		call_full=Dis_24x24Filter;
-		call_half=Dis_12x24Filter;
+		call_full=Dis_20x20Filter;
+		call_half=Dis_10x20Filter;
 		full_step=FONT24;
 		half_step=FONT24>>1;
 	}
@@ -2042,8 +2048,8 @@ void (*call_half)(uint8 num, uint16 x, uint16 y, uint16 color_f);
 	//字体为24点阵处理----------
 	if(font==FONT24) 
 	{
-		call_full=Dis_24x24Filter;
-		call_half=Dis_12x24Filter;
+		call_full=Dis_20x20Filter;
+		call_half=Dis_10x20Filter;
 		full_step=FONT24;
 		half_step=FONT24>>1;
 	}
@@ -2150,7 +2156,7 @@ uint8 youxiao;
 uint8 buf[5];
 uint8 num;
 uint32 width;
-	if(font==FONT24) width=12;
+	if(font==FONT24) width=FONT24>>1;
 	else width=8;
 	num=0;
 	switch(weisu)
@@ -2271,7 +2277,7 @@ void Dis_NumAll(uint16 dat,uint16 x,uint16 y,uint8 weisu,uint16 font,uint16 colo
 uint32 i;
 uint8 wei[5];
 uint16 step;				//每个字符占用的象素点
-	if(font==FONT24) step=12;
+	if(font==FONT24) step=FONT24>>1;
 	else step=8;
 	wei[4]=0;
 	wei[3]=0;
@@ -2349,7 +2355,7 @@ void Dis_NumFloat(uint32 dat,uint16 x,uint16 y,uint8 weisu,uint8 xiaosu,uint16 f
 uint32 m;
 uint32 zensu;
 uint32 step;
-	if(font==FONT24) step=12;
+	if(font==FONT24) step=FONT24>>1;
 	else step=8;
 	if(xiaosu==1) m=10;
 	else if(xiaosu==2) m=100;
@@ -2385,7 +2391,7 @@ uint32 i;
 uint32 m;
 uint32 step;
 uint32 num;				//整数的实际位数
-	if(font==FONT24) step=12;
+	if(font==FONT24) step=FONT24>>1;
 	else step=8;
 	if(dat<10) num=1;
 	else if(dat<100) num=2;
@@ -2448,7 +2454,7 @@ void Dis_NumInt(int16 dat,uint16 x,uint16 y,uint8 weisu,uint16 font,uint16 color
 {
 uint16 m;
 uint32 width;
-	if(font==FONT24) width=12;
+	if(font==FONT24) width=FONT24>>1;
 	else width=8;
 	//等于0处理-----
 	if(dat==0) 
@@ -2472,7 +2478,6 @@ uint32 width;
 		Dis_NumHide(m,x+width,y,weisu,font,color_f,color_b);		
 	}
 }
-
 
 //===================================================================
 //功能: 显示一个带标题栏的Windows窗体(标题栏颜色有激变效果)
@@ -2825,7 +2830,7 @@ S_Form form;
 	len=0;
 	for(i=0;i<100;i++)
 	{
-		if(*(text+i)!=0) len+=12;
+		if(*(text+i)!=0) len+=FONT24>>1;
 		else break;
 	}
 	//根据字符长度确定窗体宽度----
@@ -2878,7 +2883,7 @@ S_Form form;
 	len=0;
 	for(i=0;i<100;i++)
 	{
-		if(*(text+i)!=0) len+=12;
+		if(*(text+i)!=0) len+=FONT24>>1;
 		else break;
 	}
 	//判断输入值的最大位数-----
@@ -2887,7 +2892,7 @@ S_Form form;
 	else if(max<1000) weisu=3;
 	else if(max<10000) weisu=4;
 	else weisu=5;
-	dat_len=weisu*12;
+	dat_len=weisu*FONT24>>1;
 	
 	form.Width=len+dat_len+50;		//自动计算窗体宽度
 	if(form.Width<160) form.Width=160;
@@ -2909,7 +2914,7 @@ S_Form form;
 	y=form.Y+form.TitleHeight+((form.Height-form.TitleHeight-FONT24)>>1);
 	Dis_Strings(text,x,y,FONT24,C_Black,form.BackColor);
 	x=x+len+10;
-	Dis_TextFrame(x,y-2,dat_len+20,28,C_White);
+	Dis_TextFrame(x,y-2,dat_len+20,FRAME_Hight,C_White);
 	Sys.LcdRef=1;
 	Key.ReInput=1;
 	TchVal.RefX=x;
@@ -2967,7 +2972,7 @@ S_Form form;
 //===================================================================
 uint32 Dis_InputStrDialog(char *str,uint32 len,const char *text,uint16 color_b)
 {
-enum{ASCW=12};
+enum{ASCW=FONT24>>1};
 uint32 i;
 uint32 k;
 uint16 x,y;
@@ -3006,7 +3011,7 @@ S_Form form;
 	y=form.Y+form.TitleHeight+((form.Height-form.TitleHeight-FONT24)>>1);
 	Dis_Strings(text,x,y,FONT24,C_Black,form.BackColor);
 	x=x+text_len+10;
-	Dis_TextFrame(x,y-2,len*ASCW+20,28,C_White);
+	Dis_TextFrame(x,y-2,len*ASCW+20,FRAME_Hight,C_White);
 	Sys.LcdRef=1;
 	Key.ReInput=1;
 	TchVal.RefX=x;
@@ -3117,7 +3122,7 @@ S_Form form;
 	len=0;
 	for(i=0;i<100;i++)
 	{
-		if(*(text+i)!=0) len+=12;
+		if(*(text+i)!=0) len+=FONT24>>1;
 		else break;
 	}	
 	form.Width=len+30;
@@ -3304,7 +3309,7 @@ uint32 count;
 //===================================================================
 uint32 Dis_SelectDialog(const char *text[][LANG_MAX],uint32 item,uint16 inx,uint16 iny,uint16 inw,uint16 inh,uint32 k,uint32 b_color)
 {
-enum {ASCW=12};
+enum {ASCW=FONT24>>1};
 const char *Hz_Selcet[][LANG_MAX]={"请选择","Select",};
 uint32 i;
 uint32 x,y;
@@ -3456,49 +3461,6 @@ S_Form form;
 	Key.Value=KEY_No;
 	return(ret);	
 }
-
-/*
-//===================================================================
-//功能: 显示一个比列条
-//dat      : 当前的数值(从1开始)
-//tol       : 总数值
-//x         : 起始的x坐标
-//y         : 起始的y坐标
-//height  : 比列条的高度
-//color_f : 滑动块的颜色
-//color_b : 信息框的背景色
-//说明: 比列条占用显示宽度为13
-//===================================================================
-void Dis_PercentSlider(uint32 dat,uint32 tol,uint32 x,uint32 y,uint32 height,uint32 color_f,uint32 color_b)
-{
-#define SLIDER_H 	15
-#define SLIDER_W	12
-uint32 percent;
-uint32 m,n;
-	if(dat>0) dat--;
-	if(tol>0) 
-	{
-		tol--;
-		percent=dat*100/tol;
-	}
-	else percent=0;
-	if(percent>100) percent=100;
-	Dis_VLine(x,y,height,C_Gray1);
-	m=(height-SLIDER_H)*percent/100;
-	Dis_BoxUp(x+1,y+m,SLIDER_W,SLIDER_H,color_f);
-	//填充滑动块上部的背景色
-	if(m>0)
-	{
-		Dis_RectFill(x+1,y,SLIDER_W,m,color_b);		
-	}
-	//填充滑动块下部的背景色
-	n=m+SLIDER_H;
-	if(n<height)
-	{	
-		Dis_RectFill(x+1,y+n,SLIDER_W,height-n,color_b);
-	}
-}
-*/
 
 //===================================================================
 //功能: 显示一个比列条
@@ -3851,42 +3813,42 @@ uint32 m,n;
 //		mima:		密码值
 //返回: 			1表示密码输入正确
 //说明:			密码值最大为9999 
-//修改时间:		2013-3-6
+//修改时间:		2013-4-18
 //===================================================================
 uint32 Dis_PassWord(uint32 mima)
 {
-enum {ASCW=12,FONT=FONT24};
+enum {ASCW=FONT24>>1,FONT=FONT24};
 uint8 code[4];
 uint8 dat[5]={0,0,0,0,0};
 uint32 len;
 uint32 i;
 uint32 x,y;
 uint32 code_ok=0;
-uint32 win_x,win_y,win_w,win_h;
+S_Form form;
 	len=0;
 	code[0]=mima/1000;
 	code[1]=(mima%1000)/100;
 	code[2]=(mima%100)/10;
 	code[3]=mima%10;
-	win_w=240;
-	win_h=60;
 	if(Sys.TouchEn==0x55)
 	{
-		win_y=140;
+		form.Y=(LCD_YSize>>1)-60;
 	}
 	else
 	{
-		win_y=GET_ScrCenterY(win_h);
-	}	
-	win_x=GET_ScrCenterX(win_w);
-	LcdMemPush(win_x,win_y,win_w,win_h);
-	Dis_RectFill(win_x,win_y,win_w,win_h,C_Black);
-	Dis_Rect(win_x,win_y,win_w,win_h,C_Yellow);
-	Dis_Rect(win_x+2,win_y+2,win_w-4,win_h-4,C_Yellow);
-	Dis_Strings(HZ_SuRuMiMa[0][Lang],win_x+20,win_y+20,FONT,C_Red,C_Black);
+		form.Y=(LCD_YSize>>1)-30;
+	}
+	form.Width=240;
+	form.Height=60;
+	form.X=GET_ScrCenterX(form.Width);
+	LcdMemPush(form.X,form.Y,form.Width,form.Height);
+	Dis_RectFill(form.X,form.Y,form.Width,form.Height,C_Black);
+	Dis_Rect(form.X,form.Y,form.Width,form.Height,C_Yellow);
+	Dis_Rect(form.X+2,form.Y+2,form.Width-4,form.Height-4,C_Yellow);
+	Dis_Strings(HZ_SuRuMiMa[0][Lang],form.X+20,form.Y+20,FONT,C_Red,C_Black);
 
-	TchVal.RefX=win_x+win_w-60;
-	TchVal.RefY=win_y+16;
+	TchVal.RefX=form.X+form.Width-60;
+	TchVal.RefY=form.Y+16;
 	TchVal.RefWidth=70;
 	TchVal.RefHeight=30;
 	Dis_TouchKeyBoard(TKEY_BoardAsc);
@@ -3902,8 +3864,8 @@ uint32 win_x,win_y,win_w,win_h;
 		if(Sys.LcdRef>0)
 		{
 			Sys.LcdRef=0;
-			x=win_x+20+ASCW*12;
-			y=win_y+20;
+			x=form.X+20+ASCW*12;
+			y=form.Y+20;
 			for(i=0;i<5;i++)
 			{
 				if(i<len) Dis_Strings("*",x+i*ASCW,y,FONT24,C_White,C_Black);
@@ -3972,23 +3934,31 @@ uint32 win_x,win_y,win_w,win_h;
 //		x:			密码框的起始X坐标
 //		y:			密码框的起始Y坐标
 //返回:			1表示密码输入正确
-//说明:			密码值最大为A6237F
-//修改时间:		2013-3-6
+//说明:			
+//修改时间:		2013-4-18
 //===================================================================
-uint32 Dis_SuperPassWord(uint8 *code,uint32 x,uint32 y)
+uint32 Dis_SuperPassWord(uint8 *code)
 {
-enum {ASCW=12,FONT=FONT24};
+enum {ASCW=FONT24>>1,FONT=FONT24};
 uint8 dat[6]={0,0,0,0,0,0};
 uint32 len;
 uint32 i;
+uint32 x;
 uint32 code_ok=0;
 S_Form form;
 	Touch_KeyPush();
 	len=0;
-	form.X=x;
-	form.Y=y;
+	if(Sys.TouchEn==0x55)
+	{
+		form.Y=(LCD_YSize>>1)-60;
+	}
+	else
+	{
+		form.Y=(LCD_YSize>>1)-30;
+	}
 	form.Width=250;
 	form.Height=60;
+	form.X=GET_ScrCenterX(form.Width);
 	LcdMemPush(form.X,form.Y,form.Width,form.Height);
 	Dis_RectFill(form.X,form.Y,form.Width,form.Height,C_Black);
 	Dis_Rect(form.X,form.Y,form.Width,form.Height,C_Yellow);
@@ -4363,6 +4333,7 @@ uint32 color_f,color_b;
 uint32 flag;
 uint32 ret;
 uint32 ref_list;					// 1表示重新读取文件信息
+uint8 tkey[]={KEY_CE,KEY_OK};
 S_Form form;
 S_GuiXY guixy;
 	Touch_KeyPush();
@@ -4392,12 +4363,13 @@ S_GuiXY guixy;
 	Dis_Strings(HZ_FileTol[0][Lang],x,y,FONT16,C_Black,C_Back);
 	Touch_KeyEn(form.X,form.Y,form.Width,form.TitleHeight,KEY_ESC,10);
 
-	x=form.X+150;
+	x=form.X+180;
 	y=form.Y+form.Height-50;
-	Dis_TouchButton(Hz_SelDel[0][Lang],x,y,110,40,KEY_CE,13,C_Black,FONT24);
-
-	x=form.X+280;
-	Dis_TouchButton(Hz_SelDel[1][Lang],x,y,110,40,KEY_OK,14,C_Black,FONT24);
+	for(i=1;i<3;i++)
+	{
+		Dis_TouchButton(Hz_SelDel[i][Lang],x,y,100,40,tkey[i-1],13+i-1,C_Black,FONT24);
+		x+=120;
+	}
 	TchVal.KeyNum[0]=MAX_Num+5;
 
 	FatDir.SubDir[device]=0;			//表示在根目录下
@@ -4659,7 +4631,7 @@ S_GuiXY guixy;
 //		sel_list:		选中的文件目录信息指针
 //说明:			按弹出菜单键全部选择
 //返回:			返回的个数,0表示没有选择
-//修改时间:		2013-3-7
+//修改时间:		2013-4-18
 //===================================================================
 uint32 Dis_FileSelectMany(const char *title,uint8 *file_fdt,uint8 *sel_list)
 {
@@ -4676,6 +4648,7 @@ uint32 sel_tol;						//选中的文件数
 uint32 color_f,color_b;
 uint32 flag;
 uint32 ref_list;					// 1表示重新读取文件信息
+uint8 tkey[]={KEY_POP,KEY_CE,KEY_OK};
 S_Form form;
 S_GuiXY guixy;
 	Touch_KeyPush();
@@ -4705,14 +4678,18 @@ S_GuiXY guixy;
 	Touch_KeyEn(form.X,form.Y,form.Width,form.TitleHeight,KEY_ESC,10);
 	Dis_Strings(HZ_FileTol[0][Lang],form.X+10,form.Y+form.Height-40,FONT16,C_Black,C_Back);
 
-	x=form.X+150;
+	//底部功能键-----------------
+	x=form.X+130;
 	y=form.Y+form.Height-50;
-	Dis_TouchButton(Hz_SelDel[0][Lang],x,y,120,40,KEY_CE,13,C_Black,FONT24);
-	x+=130;
-	Dis_TouchButton(Hz_SelDel[1][Lang],x,y,120,40,KEY_OK,14,C_Black,FONT24);
+	for(i=0;i<3;i++)
+	{
+		Dis_TouchButton(Hz_SelDel[i][Lang],x,y,85,40,tkey[i],13+i,C_Black,FONT24);
+		x+=90;
+	}
 	
-	TchVal.KeyNum[0]=MAX_Num+5;
+	TchVal.KeyNum[0]=MAX_Num+6;
 	FatDir.SubDir[USB]=0;			//表示在根目录下
+	
 	while(1)
 	{
 		Send_DspReply();		//发送中断中置位的命令回码	
@@ -4771,7 +4748,7 @@ S_GuiXY guixy;
 						Dis_Rect(form.X+9,y-1,18,18,C_Gray1);				
 					}
 					Dis_FileInfoFlord(&file_list[m*32],1,x,y,color_f,color_b);
-					Touch_KeyEn(x,y,330,16,KEY_Tch,i);
+					Touch_KeyEn(form.X+5,y,330,16,KEY_Tch,i);
 				}
 				y+=20;
 			}
@@ -4872,16 +4849,29 @@ S_GuiXY guixy;
 		{
 			Sys.LcdRef=REF_Now;
 			i=k+k_start;
-			if(file_sel[i]==1) file_sel[i]=0;
-			else file_sel[i]=1;
+			//若不是文件夹则处理------
+			if(file_list[i*32+FAT_Properties]!=FAT_Dir)
+			{
+				if(file_sel[i]==1) file_sel[i]=0;
+				else file_sel[i]=1;
+			}
 		}
 		//选择全部文件----------
 		else if(Key.Value==KEY_POP)
 		{
 			Sys.LcdRef=REF_Item;
-			for(i=0;i<file_tol;i++)
+			i=k+k_start;
+			//光标在目录上不能全选---------
+			if(file_list[i*32+FAT_Properties]!=FAT_Dir)
 			{
-				file_sel[i]=1;
+				for(i=0;i<file_tol;i++)
+				{
+					//若不是文件夹则选中------
+					if(file_list[i*32+FAT_Properties]!=FAT_Dir)
+					{
+						file_sel[i]=1;
+					}
+				}
 			}
 		}
 		else if((Key.Value==KEY_CE)&&(file_tol>0))

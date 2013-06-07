@@ -3,8 +3,7 @@
     Version="10.0"
     VendorName="SlickEdit"
     TemplateName="Other C/C++"
-    WorkingDir="."
-    VCSProject="Git:">
+    WorkingDir=".">
     <Config
         Name="Debug"
         Type="cpp"
@@ -205,12 +204,19 @@
                 </Folder>
                 <F N="../lib/font/font.c"/>
                 <F N="../lib/font/font.h"/>
+                <F N="../lib/font/font_ascii_data.c"/>
                 <F N="../lib/font/utf8.c"/>
                 <F N="../lib/font/utf8.h"/>
             </Folder>
             <Folder Name="gui">
+                <F N="../lib/gui/Asc8x16_dot.h"/>
+                <F N="../lib/gui/event.c"/>
+                <F N="../lib/gui/event.h"/>
                 <F N="../lib/gui/Gui.c"/>
-                <F N="../lib/gui/Gui.h"/>
+                <F N="../lib/gui/gui.h"/>
+                <F N="../lib/gui/Gui_TouchKeyBoard.c"/>
+                <F N="../lib/gui/Gui_TouchKeyBoard.h"/>
+                <F N="../lib/gui/usergui.h"/>
             </Folder>
             <Folder Name="mmcsdlib">
                 <Folder Name="include">
@@ -349,6 +355,7 @@
                     <F N="../lib/platform/include/pf_rx8025.h"/>
                     <F N="../lib/platform/include/pf_timertick.h"/>
                     <F N="../lib/platform/include/pf_tsc.h"/>
+                    <F N="../lib/platform/include/pf_uart.h"/>
                     <F N="../lib/platform/include/pf_usbmsc.h"/>
                     <F N="../lib/platform/include/platform.h"/>
                     <F N="../lib/platform/include/tft.h"/>
@@ -366,7 +373,9 @@
                 <F N="../lib/platform/pf_hs_mmcsd.c"/>
                 <F N="../lib/platform/pf_hsi2c.c"/>
                 <F N="../lib/platform/pf_int.c"/>
+                <F N="../lib/platform/pf_key.c"/>
                 <F N="../lib/platform/pf_lcd.c"/>
+                <F N="../lib/platform/pf_module.c"/>
                 <F N="../lib/platform/pf_mux.h"/>
                 <F N="../lib/platform/pf_norflash.c"/>
                 <F N="../lib/platform/pf_platform.c"/>
@@ -376,12 +385,12 @@
                 <F N="../lib/platform/pf_rx8025.c"/>
                 <F N="../lib/platform/pf_sysperf.c"/>
                 <F N="../lib/platform/pf_timertick.c"/>
+                <F N="../lib/platform/pf_tsc.c"/>
                 <F N="../lib/platform/pf_uart.c"/>
                 <F N="../lib/platform/pf_uartConsole.c"/>
                 <F N="../lib/platform/pf_usb.c"/>
                 <F N="../lib/platform/pf_usbmsc.c"/>
                 <F N="../lib/platform/pf_watchdog.c"/>
-                <F N="../lib/platform/pl_tsc.c"/>
             </Folder>
             <Folder Name="tool">
                 <Folder Name="ewarm">
@@ -441,8 +450,10 @@
             <Folder Name="utils">
                 <Folder Name="include">
                     <F N="../lib/utils/include/algorithm.h"/>
+                    <F N="../lib/utils/include/atomic.h"/>
                     <F N="../lib/utils/include/cmdline.h"/>
                     <F N="../lib/utils/include/debug.h"/>
+                    <F N="../lib/utils/include/mem.h"/>
                     <F N="../lib/utils/include/misc.h"/>
                     <F N="../lib/utils/include/mmath.h"/>
                     <F N="../lib/utils/include/perf.h"/>
@@ -451,6 +462,7 @@
                 </Folder>
                 <F N="../lib/utils/algorithm.c"/>
                 <F N="../lib/utils/cmdline.c"/>
+                <F N="../lib/utils/mem.c"/>
                 <F N="../lib/utils/misc.c"/>
                 <F N="../lib/utils/perf.c"/>
                 <F N="../lib/utils/uartStdio.c"/>
@@ -465,6 +477,7 @@
                 <F N="../src/mmc_inand_fat/cpld.c"/>
                 <F N="../src/mmc_inand_fat/main.c"/>
                 <F N="../src/mmc_inand_fat/mmc_inand_fat.c"/>
+                <F N="../src/mmc_inand_fat/ui.c"/>
             </Folder>
         </Folder>
     </Files>

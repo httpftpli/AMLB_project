@@ -1,6 +1,6 @@
 /********************************************************************
 功能:				触摸屏的模拟键盘
-修改时间:		2013-3-6
+修改时间:		2013-4-18
 ********************************************************************/
 #include "Head.h"
 
@@ -428,6 +428,208 @@ uint16 x,y;
 //功能:			显示一个模拟键盘
 //参数:
 //返回:
+//说明:			供参数输入调用(带当前值设定键和左右键)
+//修改时间:		2013-4-10
+//===================================================================
+void Dis_TKeyBoardParaSetLR(void)
+{
+const char *Hz_KeyBoardPara[][LANG_MAX]=
+{
+	"1","1","2","2","3","3",
+	"4","4","5","5","6","6",
+	"7","7","8","8","9","9",
+	"+/-","+/-","0","0",".",".",
+	"←","←","→","→","退格","Del","设定","Set",
+	"取消","Esc","确定","Ent",	
+};
+enum 
+{
+	FONT=FONT24,
+	MAX=18,
+	WIDTH=295,HEIGHT=230,
+	START_X=5,START_Y=5,
+	KEY_XJG=65,KEY_YJG=45,
+	KEY_W=60,KEYF_W=90,KEY_H=40
+};
+uint32 tk[MAX]=
+{
+	KEY_1,KEY_2,KEY_3,
+	KEY_4,KEY_5,KEY_6,
+	KEY_7,KEY_8,KEY_9,
+	KEY_ZF,KEY_0,KEY_POINT,
+	KEY_LEFT,KEY_RIGHT,KEY_QUK,KEY_F1,
+	KEY_ESC,KEY_OK,
+};
+
+uint32 i;
+uint16 x,y;
+	Touch_BoxGetXY(WIDTH,HEIGHT,FIRST_Down);
+	Touch_KeyPush();
+
+	LcdMemPush(TchVal.PicX,TchVal.PicY,WIDTH,HEIGHT);
+	Dis_CircleRectFill(TchVal.PicX,TchVal.PicY,WIDTH,HEIGHT,6,C_ButtonBack);
+	Dis_CircleRect(TchVal.PicX,TchVal.PicY,WIDTH,HEIGHT,6,C_ButtonSide);
+
+	//触摸键定义-------------
+	for(i=0;i<MAX;i++)
+	{
+		//前面4行的显示位置-----
+		if(i<12)
+		{
+			x=START_X+KEY_XJG*(i%3);
+			y=START_Y+KEY_YJG*(i/3);
+		}
+		else if(i<16)
+		{
+			x=START_X+KEY_XJG*3;
+			y=START_Y+KEY_YJG*(i-12);				
+		}
+		else
+		{
+			if(i==16) x=START_X;
+			else x=START_X+145;
+			y=START_Y+KEY_YJG*4;
+		}
+
+		TchKey[0][i].x=TchVal.PicX+x;		
+		TchKey[0][i].y=TchVal.PicY+y;
+		TchKey[0][i].height=KEY_H;
+		TchKey[0][i].key=tk[i];
+		TchKey[0][i].Flash=1;
+		TchKey[0][i].String=Hz_KeyBoardPara[i][Lang];
+		TchKey[0][i].Font=FONT;
+		
+		if(i<12)
+		{
+			TchKey[0][i].width=KEY_W;
+		}
+		else if(i<16)
+		{
+			TchKey[0][i].width=KEYF_W;
+		}
+		else
+		{
+			TchKey[0][i].width=140;
+		}
+
+		Dis_CircleRectFill(TchKey[0][i].x-1,TchKey[0][i].y+2,TchKey[0][i].width+3,TchKey[0][i].height,6,C_ButtonYinYing);
+		Dis_TouchButtonUp(TchKey[0][i].String,TchKey[0][i].x,TchKey[0][i].y,TchKey[0][i].width,TchKey[0][i].height,C_Black,FONT);
+	}
+	
+	TchVal.ButtonMax[0]=MAX;
+	TchVal.KeyNum[0]=MAX;		//允许使用的键数(前面的优先)
+}
+
+//===================================================================
+//功能:			显示一个模拟键盘
+//参数:
+//返回:
+//说明:			供参数输入调用(带当前值设定键和左右键和输出键)
+//修改时间:		2013-4-18
+//===================================================================
+void Dis_TKeyBoardParaSetLROut(void)
+{
+const char *Hz_KeyBoardPara[][LANG_MAX]=
+{
+	"1","1","2","2","3","3",
+	"4","4","5","5","6","6",
+	"7","7","8","8","9","9",
+	"+/-","+/-","0","0",".",".",
+	"←","←","→","→","输出","Out","退格","Del","设定","Set",
+	"取消","Esc","确定","Ent",	
+};
+enum 
+{
+	FONT=FONT24,
+	MAX=19,
+	WIDTH=295,HEIGHT=230,
+	START_X=5,START_Y=5,
+	KEY_XJG=65,KEY_YJG=45,
+	KEY_W=60,KEYF_W=90,KEY_H=40
+};
+uint32 tk[MAX]=
+{
+	KEY_1,KEY_2,KEY_3,
+	KEY_4,KEY_5,KEY_6,
+	KEY_7,KEY_8,KEY_9,
+	KEY_ZF,KEY_0,KEY_POINT,
+	KEY_LEFT,KEY_RIGHT,KEY_F6,KEY_QUK,KEY_F1,
+	KEY_ESC,KEY_OK,
+};
+
+uint32 i;
+uint16 x,y;
+	Touch_BoxGetXY(WIDTH,HEIGHT,FIRST_Down);
+	Touch_KeyPush();
+
+	LcdMemPush(TchVal.PicX,TchVal.PicY,WIDTH,HEIGHT);
+	Dis_CircleRectFill(TchVal.PicX,TchVal.PicY,WIDTH,HEIGHT,6,C_ButtonBack);
+	Dis_CircleRect(TchVal.PicX,TchVal.PicY,WIDTH,HEIGHT,6,C_ButtonSide);
+
+	//触摸键定义-------------
+	for(i=0;i<MAX;i++)
+	{
+		//前面4行的显示位置-----
+		if(i<12)
+		{
+			x=START_X+KEY_XJG*(i%3);
+			y=START_Y+KEY_YJG*(i/3);
+		}
+		//左右键------
+		else if(i<14)
+		{
+			x=START_X+KEY_XJG*3+47*(i-12);
+			y=START_Y;
+		}
+		else if(i<17)
+		{
+			x=START_X+KEY_XJG*3;
+			y=START_Y+KEY_YJG*(i-13);				
+		}
+		else
+		{
+			if(i==17) x=START_X;
+			else x=START_X+145;
+			y=START_Y+KEY_YJG*4;
+		}
+
+		TchKey[0][i].x=TchVal.PicX+x;		
+		TchKey[0][i].y=TchVal.PicY+y;
+		TchKey[0][i].height=KEY_H;
+		TchKey[0][i].key=tk[i];
+		TchKey[0][i].Flash=1;
+		TchKey[0][i].String=Hz_KeyBoardPara[i][Lang];
+		TchKey[0][i].Font=FONT;
+		
+		if(i<12)
+		{
+			TchKey[0][i].width=KEY_W;
+		}
+		else if(i<14)
+		{
+			TchKey[0][i].width=42;
+		}
+		else if(i<17)
+		{
+			TchKey[0][i].width=KEYF_W;
+		}
+		else
+		{
+			TchKey[0][i].width=140;
+		}
+
+		Dis_CircleRectFill(TchKey[0][i].x-1,TchKey[0][i].y+2,TchKey[0][i].width+3,TchKey[0][i].height,6,C_ButtonYinYing);
+		Dis_TouchButtonUp(TchKey[0][i].String,TchKey[0][i].x,TchKey[0][i].y,TchKey[0][i].width,TchKey[0][i].height,C_Black,FONT);
+	}
+	
+	TchVal.ButtonMax[0]=MAX;
+	TchVal.KeyNum[0]=MAX;		//允许使用的键数(前面的优先)
+}
+
+//===================================================================
+//功能:			显示一个模拟键盘
+//参数:
+//返回:
 //说明:			供参数输入调用
 //修改时间:		2013-1-24
 //===================================================================
@@ -595,7 +797,7 @@ uint16 x,y;
 //		hint:			表示显示哪种类型的触摸键盘
 //返回:
 //说明:
-//修改时间:		2013-3-7
+//修改时间:		2013-4-10
 //===================================================================
 void Dis_TouchKeyBoard(uint32 hint)
 {
@@ -625,6 +827,12 @@ void Dis_TouchKeyBoard(uint32 hint)
 		case TKEY_BoardParaSet:
 			Dis_TKeyBoardParaSet();
 			break;
+		case TKEY_BoardParaSetLR:
+			Dis_TKeyBoardParaSetLR();
+			break;
+		case TKEY_BoardParaSetLROut:
+			Dis_TKeyBoardParaSetLROut();
+			break;
 		case TKEY_BoardAsc:
 			Dis_TKeyBoardPassWord();
 			break;
@@ -642,12 +850,12 @@ void Dis_TouchKeyBoard(uint32 hint)
 //		hint:			表示显示哪种类型的
 //返回:
 //说明:
-//修改时间:		2013-3-6
+//修改时间:		2013-4-3
 //===================================================================
 void TouchKeyBoardClose(void)
 {
 	//若触摸屏被关闭则直接返回-----
-	if(Sys.TouchEn!=0x55)
+	if((Sys.TouchEn!=0x55)||(TchVal.KeyBoard==0))
 	{
 		return;
 	}

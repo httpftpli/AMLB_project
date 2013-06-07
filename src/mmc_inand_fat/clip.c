@@ -143,3 +143,72 @@
    }
 
    //DDR TEST FINISH
+
+
+
+   FRESULT f_fdiskEx (
+	BYTE pdrv,			/* Physical drive number */
+    unsigned int *beginLBA,
+	const DWORD szt[],	/* Pointer to the size table for each partitions */
+	void* work			/* Pointer to the working buffer */
+)
+{
+	UINT i, n, sz_cyl, tot_cyl, b_cyl, e_cyl, p_cyl;
+	BYTE s_hd, e_hd, *p, *buf = (BYTE*)work;
+	DSTATUS stat;
+	DWORD sz_disk, sz_part, s_part;
+
+
+	stat = disk_initialize(pdrv);
+	if (stat & STA_NOINIT) return FR_NOT_READY;
+	if (stat & STA_PROTECT) return FR_WRITE_PROTECTED;
+	if (disk_ioctl(pdrv, GET_SECTOR_COUNT, &sz_disk)) return FR_DISK_ERR;
+
+	/* Determine CHS in the table regardless of the drive geometry */
+	for (n = 16; n < 256 && sz_disk / n / 63 > 1024; n *= 2) ;
+	if (n == 256) n--;
+	e_hd = n - 1;
+	sz_cyl = 63 * n;
+	tot_cyl = sz_disk / sz_cyl;
+
+	/* Create partition table */
+	mem_set(buf, 0, _MAX_SS);
+	p = buf + MBR_Table; b_cyl = *beginLBA/sz_cyl+1;*beginLBA = b_cyl*sz_cyl;
+	for (i = 0; i < 4; i++, p += SZ_PTE) {
+        if (szt[i]==-1UL) {
+           i= 4; 
+           p_cyl = tot_cyl- b_cyl;
+        }else{
+           p_cyl = (szt[i] <= 100) ? (DWORD)(tot_cyl-b_cyl )* szt[i] / 100 : szt[i] / sz_cyl;
+        }
+		if (!p_cyl) continue;
+		s_part = (DWORD)sz_cyl * b_cyl;
+		sz_part = (DWORD)sz_cyl * p_cyl;
+		if (b_cyl == 0) {	/* Exclude first track of cylinder 0 */
+			s_hd = 1;
+			s_part += 63; sz_part -= 63;
+		} else {
+			s_hd = 0;
+		}
+		e_cyl = b_cyl + p_cyl - 1;
+		if (e_cyl >= tot_cyl) return FR_INVALID_PARAMETER;
+
+		/* Set partition table */
+		p[1] = s_hd;						/* Start head */
+		p[2] = (BYTE)((b_cyl >> 2) + 1);	/* Start sector */
+		p[3] = (BYTE)b_cyl;					/* Start cylinder */
+		p[4] = 0x06;						/* System type (temporary setting) */
+		p[5] = e_hd;						/* End head */
+		p[6] = (BYTE)((e_cyl >> 2) + 63);	/* End sector */
+		p[7] = (BYTE)e_cyl;					/* End cylinder */
+		ST_DWORD(p + 8, s_part);			/* Start sector in LBA */
+		ST_DWORD(p + 12, sz_part);			/* Partition size */
+
+		/* Next partition */
+		b_cyl += p_cyl;
+	}
+	ST_WORD(p, 0xAA55);
+
+	/* Write it to the MBR */
+	return (disk_write(pdrv, buf, 0, 1) || disk_ioctl(pdrv, CTRL_SYNC, 0)) ? FR_DISK_ERR : FR_OK;
+}

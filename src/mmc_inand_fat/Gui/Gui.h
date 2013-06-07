@@ -2,7 +2,7 @@
 #define 	_Gui_H_
 
 #define ASC_Head 			32		//半角字符对应ASC表的首地址
-#define ASC_Num				16		//数字在ASC点阵的偏移位置
+#define ASC_Num			16		//数字在ASC点阵的偏移位置
 
 #define LCD_SIGNAL_Fan		0				// 1表示电平信号反(0x0000=白,0xffff=黑)(夏普设为1)
 
@@ -22,13 +22,13 @@
 #define BTN_Yellow		1
 
 #define FONT16			16				//字体为16*16点阵	
-#define FONT24			24				//字体为24*24点阵	
+#define FONT24			20				//字体为20*20点阵	
 
-#define FRAME_Hight		28				//文本框的高度
+#define FRAME_Hight		24				//文本框的高度
 
 #define TITLE_H16		24				//标题栏为16点阵字体的高度
-#define TITLE_H24		28				//标题样为24点阵字体的高度
-#define TITLE_H35		35				//标题栏高度为35个象素
+#define TITLE_H24		30				//标题样为24点阵字体的高度
+#define TITLE_H35		32				//标题栏高度为35个象素
 
 
 #define PTEXT	(const char *)
@@ -37,24 +37,24 @@
 
 //单个图标部件结构----------------
 typedef __packed struct _S_GuiIcon{
-	const char *Text;			//图标下显示的文本指针
-	uint16 *Bmp;				//ICON图标的首地址指针
-	uint16 X;					//图标部件的起始X坐标(按提示框算)
-	uint16 Y;					//图标部件的起始Y坐标(按提示框算)
-	uint16 Width;				//图标部件的宽度(即提示框的宽度)
-	uint16 Height;				//图标部件的高度(即提示框的高度)
-	uint16 BmpW;				//图片的宽度
-	uint16 BmpH;				//图片的高度
-	uint16 Sel;				//不为0表示光标正在本图标上
-	uint16 TextColor;			//提示文本颜色
-	uint16 RectColor;			//选中框的颜色
-	uint16 BackColor;			//背景色
+	const char *Text;		//图标下显示的文本指针
+	uint16 *Bmp;			//ICON图标的首地址指针
+	uint16 X;				//图标部件的起始X坐标(按提示框算)
+	uint16 Y;				//图标部件的起始Y坐标(按提示框算)
+	uint16 Width;			//图标部件的宽度(即提示框的宽度)
+	uint16 Height;			//图标部件的高度(即提示框的高度)
+	uint16 BmpW;			//图片的宽度
+	uint16 BmpH;			//图片的高度
+	uint16 Sel;			//不为0表示光标正在本图标上
+	uint16 TextColor;		//提示文本颜色
+	uint16 RectColor;		//选中框的颜色
+	uint16 BackColor;		//背景色
 }S_GuiIcon;
 
 //图标显示坐标定位结构--------
 typedef struct _S_GuiXY{
-	uint16 StartX;				//起始的X坐标
-	uint16 StartY;				//起始的Y坐标
+	uint16 StartX;			//起始的X坐标
+	uint16 StartY;			//起始的Y坐标
 	uint16 RowSpace;			//上下两项间的行间距
 	uint16 ColSpace;			//左右两项间的列间距
 	uint16 RowIcons;			//每行显示的图标数
@@ -73,7 +73,7 @@ typedef __packed struct _S_LcdMem{
 	uint32 X[10];				//起始X坐标
 	uint32 Y[10];				//起始Y坐标
 	uint32 Width[10];			//象素宽度
-	uint32 Height[10];			//象素高度
+	uint32 Height[10];		//象素高度
 }S_LcdMem;
 
 //窗体信息结构定义------------------------------
@@ -81,23 +81,23 @@ typedef __packed struct _S_Form{
 	uint16 X;					//起始的X坐标
 	uint16 Y;					//起始的Y坐标
 	uint16 Width;				//窗体宽度
-	uint16 Height;				//窗体高度
+	uint16 Height;			//窗体高度
 	const char *TitleText;		//标题栏文本	
 	uint16 TitleFont;			//标题栏文本的字体类型
 	uint16 TitleColor;			//标题栏颜色类型(固定为三种)
-	uint16 TitleHeight;			//标题栏高度	
+	uint16 TitleHeight;		//标题栏高度	
 	uint16 TextColor;			//标题栏文字颜色
 	uint16 BackColor;			//背景色(窗体填充的背景色)
 	uint16 FillBack;			//不为0表示填充背景色
 }S_Form;
 
 extern const uint8 Asc8x16[];
-extern const uint8 Asc12x24[];
+extern const uint8 Asc10x20[];
 extern const uint16 FormTitleColor[3][24];
 extern S_LcdMem LcdMem;
 extern uint32 Lang;
 extern uint8 Hz_Lib[];							
-extern uint8 Hz_Lib24[];						
+extern uint8 Hz_Lib20[];						
 
 void ClearScreen(uint8 dat,uint8 layer);
 void Lcd_Init(void);
@@ -164,7 +164,7 @@ extern void Dis_SpeedInfo(const char *title,uint32 dat,uint32 tol,uint32 width,u
 //extern void Dis_TouchBottom(const char *hz,uint32 x,uint32 y,uint32 width,uint32 height,uint32 color,uint32 btncolor,uint16 key,uint16 num,uint16 font);
 
 uint32 Dis_PassWord(uint32 mima);
-uint32 Dis_SuperPassWord(uint8 *code,uint32 x,uint32 y);
+uint32 Dis_SuperPassWord(uint8 *code);
 
 void Get_IconFormPlace(S_Form *form,S_GuiXY *guixy,S_GuiIcon *icon,uint32 ext_h);
 void Dis_IconRef(S_GuiXY *guixy,S_GuiIcon *icon,const char *text[][LANG_MAX],uint16 *bmp,uint32 k,uint32 tch_k);

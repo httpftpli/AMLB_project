@@ -9,11 +9,11 @@ TriggerName=main
 LimitSize=0
 ByteLimit=50
 [DebugChecksum]
-Checksum=-1858126406
+Checksum=-211503376
 [JLinkDriver]
 WatchCond=_ 0
-Watch0=_ 0 "" 0 "" 0 "" 0 "" 0 0 0 0
-Watch1=_ 0 "" 0 "" 0 "" 0 "" 0 0 0 0
+Watch0=_ 0 "0x00000000" 0 "0x00000000" 0 "0x00000000" 0 "0x00000000" 0 4 0 0
+Watch1=_ 0 "0x00000000" 0 "0x00000000" 0 "0x00000000" 0 "0x00000000" 0 4 0 0
 CStepIntDis=_ 0
 [Exceptions]
 StopOnUncaught=_ 0
@@ -25,42 +25,6 @@ MixedMode=1
 [SfrWindow]
 Show=1 1
 Sort=4 0
-[struct_types]
-Fmt0=mmcsdCardInfo-busWidthSupport	4	0
-Fmt1=mmcsdCardInfo-rca	4	0
-Fmt2=mmcsdCardInfo-tranSpeed	3	0
-Fmt3=mmcsdCtrlInfo-memBase	4	0
-[array_types]
-Fmt0=signed int[3]	3	0
-Fmt1=unsigned char[3]	4	0
-Fmt2=unsigned char[4096]	4	0
-Fmt3=unsigned int[1048576]	4	0
-Fmt4=unsigned int[2]	4	0
-Fmt5=unsigned int[4]	4	0
-Fmt6=unsigned short[4]	4	0
-[watch_formats]
-Fmt0={W}0:*(unsigned int *) 0x481d8204	4	0
-Fmt1={W}0:a	4	0
-Fmt2={W}0:b	4	0
-Fmt3={W}0:bufmmc	0	4
-Fmt4={W}0:ctrl->memBase	4	0
-Fmt5={W}0:ucs2_string	4	0
-Fmt6={W}0:xxx	4	0
-[Log file]
-LoggingEnabled=_ 0
-LogFile=_ ""
-Category=_ 0
-[TermIOLog]
-LoggingEnabled=_ 0
-LogFile=_ ""
-[CallStackLog]
-Enabled=0
-[DriverProfiling]
-Enabled=0
-Mode=0
-Graph=0
-Symbiont=0
-Exclusions=
 [InterruptLog]
 LogEnabled=0
 SumEnabled=0
@@ -86,10 +50,54 @@ ActionState=1
 [Trace1]
 Enabled=0
 ShowSource=1
+[struct_types]
+Fmt0=mmcsdCardInfo-busWidthSupport	4	0
+Fmt1=mmcsdCardInfo-rca	4	0
+Fmt2=mmcsdCardInfo-tranSpeed	3	0
+Fmt3=mmcsdCtrlInfo-memBase	4	0
+Fmt4=tLCDCTRL-baseAddr	4	0
+Fmt5=tUSBInstanceObject-uiBaseAddr	4	0
+Fmt6=tUSBInstanceObject-uiSubBaseAddr	4	0
+[array_types]
+Fmt0=signed int[3]	3	0
+Fmt1=unsigned char[3]	4	0
+Fmt2=unsigned char[4096]	4	0
+Fmt3=unsigned int[1048576]	4	0
+Fmt4=unsigned int[2]	4	0
+Fmt5=unsigned int[4]	4	0
+Fmt6=unsigned short[4]	4	0
+[watch_formats]
+Fmt0={W}0:*(unsigned int *) 0x481d8204	4	0
+Fmt1={W}0:a	4	0
+Fmt2={W}0:b	4	0
+Fmt3={W}0:bufmmc	0	4
+Fmt4={W}0:ctrl->memBase	4	0
+Fmt5={W}0:ucs2_string	4	0
+Fmt6={W}0:xxx	4	0
 [Disassemble mode]
 mode=0
 [Breakpoints2]
-Count=0
+Bp0=_ 0 "EMUL_CODE" "{$PROJ_DIR$\..\..\..\lib\fatfs\src\ff.c}.3935.2" 0 0 1 "" 0 "" 0
+Bp1=_ 0 "EMUL_CODE" "{$PROJ_DIR$\..\..\..\lib\fatfs\src\ff.c}.3946.2" 0 0 1 "" 0 "" 0
+Bp2=_ 0 "EMUL_CODE" "{$PROJ_DIR$\..\..\..\lib\fatfs\src\ff.c}.3655.3" 0 0 1 "" 0 "" 0
+Bp3=_ 0 "EMUL_CODE" "{$PROJ_DIR$\..\..\..\lib\fatfs\port\diskio.c}.181.10" 0 0 1 "" 0 "" 0
+Bp4=_ 0 "EMUL_CODE" "0x800035CA" 0 0 1 "" 0 "" 0
+Count=5
+[Log file]
+LoggingEnabled=_ 0
+LogFile=_ ""
+Category=_ 0
+[TermIOLog]
+LoggingEnabled=_ 0
+LogFile=_ ""
 [Aliases]
 Count=0
 SuppressDialog=0
+[CallStackLog]
+Enabled=0
+[DriverProfiling]
+Enabled=0
+Mode=0
+Graph=0
+Symbiont=0
+Exclusions=

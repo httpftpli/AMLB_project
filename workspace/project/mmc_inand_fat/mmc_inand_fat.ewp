@@ -61,7 +61,7 @@
         <option>
           <name>FPU</name>
           <version>2</version>
-          <state>4</state>
+          <state>0</state>
         </option>
         <option>
           <name>OGCoreOrChip</name>
@@ -1943,6 +1943,9 @@
     <group>
       <name>gui</name>
       <file>
+        <name>$PROJ_DIR$\..\..\..\lib\gui\event.c</name>
+      </file>
+      <file>
         <name>$PROJ_DIR$\..\..\..\lib\gui\Gui.c</name>
       </file>
     </group>
@@ -2069,7 +2072,13 @@
         <name>$PROJ_DIR$\..\..\..\lib\platform\pf_int.c</name>
       </file>
       <file>
+        <name>$PROJ_DIR$\..\..\..\lib\platform\pf_key.c</name>
+      </file>
+      <file>
         <name>$PROJ_DIR$\..\..\..\lib\platform\pf_lcd.c</name>
+      </file>
+      <file>
+        <name>$PROJ_DIR$\..\..\..\lib\platform\pf_module.c</name>
       </file>
       <file>
         <name>$PROJ_DIR$\..\..\..\lib\platform\pf_mux.h</name>
@@ -2097,6 +2106,9 @@
       </file>
       <file>
         <name>$PROJ_DIR$\..\..\..\lib\platform\pf_timertick.c</name>
+      </file>
+      <file>
+        <name>$PROJ_DIR$\..\..\..\lib\platform\pf_tsc.c</name>
       </file>
       <file>
         <name>$PROJ_DIR$\..\..\..\lib\platform\pf_uart.c</name>
@@ -2192,7 +2204,13 @@
     <group>
       <name>utils</name>
       <file>
+        <name>$PROJ_DIR$\..\..\..\lib\utils\algorithm.c</name>
+      </file>
+      <file>
         <name>$PROJ_DIR$\..\..\..\lib\utils\cmdline.c</name>
+      </file>
+      <file>
+        <name>$PROJ_DIR$\..\..\..\lib\utils\mem.c</name>
       </file>
       <file>
         <name>$PROJ_DIR$\..\..\..\lib\utils\misc.c</name>
@@ -2215,6 +2233,9 @@
     </group>
     <file>
       <name>$PROJ_DIR$\..\..\..\src\mmc_inand_fat\mmc_inand_fat.c</name>
+    </file>
+    <file>
+      <name>$PROJ_DIR$\..\..\..\src\mmc_inand_fat\ui.c</name>
     </file>
   </group>
   <file>
