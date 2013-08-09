@@ -169,6 +169,7 @@
         <option>
           <name>CCDefines</name>
           <state>am335x</state>
+          <state>BEAGLEBONExx</state>
         </option>
         <option>
           <name>CCPreprocFile</name>
@@ -309,6 +310,7 @@
           <state>$PROJ_DIR$\..\..\..\lib\utils\include\</state>
           <state>$PROJ_DIR$\..\..\..\lib\font\</state>
           <state>$PROJ_DIR$\..\..\..\lib\gui\</state>
+          <state>$PROJ_DIR$\..\..\..\src\mmc_inand_fat\config\</state>
         </option>
         <option>
           <name>CCStdIncCheck</name>
@@ -328,7 +330,7 @@
         </option>
         <option>
           <name>CCOptLevel</name>
-          <state>1</state>
+          <state>0</state>
         </option>
         <option>
           <name>CCOptStrategy</name>
@@ -337,7 +339,7 @@
         </option>
         <option>
           <name>CCOptLevelSlave</name>
-          <state>1</state>
+          <state>0</state>
         </option>
         <option>
           <name>CompilerMisraRules98</name>
@@ -1237,6 +1239,7 @@
           <state>$PROJ_DIR$\..\..\..\lib\utils\include\</state>
           <state>$PROJ_DIR$\..\..\..\lib\font\</state>
           <state>$PROJ_DIR$\..\..\..\lib\gui\</state>
+          <state>$PROJ_DIR$\..\..\..\src\mmc_inand_fat\config\</state>
         </option>
         <option>
           <name>CCStdIncCheck</name>
@@ -1903,9 +1906,6 @@
       <group>
         <name>src</name>
         <file>
-          <name>$PROJ_DIR$\..\..\..\lib\fatfs\src\option\cc936.c</name>
-        </file>
-        <file>
           <name>$PROJ_DIR$\..\..\..\lib\fatfs\src\ff.c</name>
         </file>
         <file>
@@ -1918,35 +1918,47 @@
           <name>$PROJ_DIR$\..\..\..\lib\fatfs\src\ff_ext.h</name>
         </file>
         <file>
-          <name>$PROJ_DIR$\..\..\..\lib\fatfs\src\ffconf.h</name>
-        </file>
-        <file>
           <name>$PROJ_DIR$\..\..\..\lib\fatfs\src\integer.h</name>
         </file>
       </group>
     </group>
     <group>
-      <name>font</name>
-      <group>
-        <name>unicode</name>
-        <file>
-          <name>$PROJ_DIR$\..\..\..\lib\font\Unicode\unicode.c</name>
-        </file>
-      </group>
+      <name>gui</name>
       <file>
-        <name>$PROJ_DIR$\..\..\..\lib\font\font.c</name>
+        <name>$PROJ_DIR$\..\..\..\lib\gui\ascii_16.c</name>
       </file>
       <file>
-        <name>$PROJ_DIR$\..\..\..\lib\font\utf8.c</name>
+        <name>$PROJ_DIR$\..\..\..\lib\gui\ascii_20.c</name>
+      </file>
+      <file>
+        <name>$PROJ_DIR$\..\..\..\lib\gui\font.c</name>
+      </file>
+      <file>
+        <name>$PROJ_DIR$\..\..\..\lib\gui\GUI_draw.c</name>
+      </file>
+      <file>
+        <name>$PROJ_DIR$\..\..\..\lib\gui\GUI_SIF_Prop.c</name>
+      </file>
+      <file>
+        <name>$PROJ_DIR$\..\..\..\lib\gui\GUICharP.c</name>
+      </file>
+      <file>
+        <name>$PROJ_DIR$\..\..\..\lib\gui\GUIType.h</name>
+      </file>
+      <file>
+        <name>$PROJ_DIR$\..\..\..\lib\gui\lib_gui.h</name>
+      </file>
+      <file>
+        <name>$PROJ_DIR$\..\..\..\lib\gui\utf8.c</name>
+      </file>
+      <file>
+        <name>$PROJ_DIR$\..\..\..\lib\gui\utf8.h</name>
       </file>
     </group>
     <group>
-      <name>gui</name>
+      <name>linker</name>
       <file>
-        <name>$PROJ_DIR$\..\..\..\lib\gui\event.c</name>
-      </file>
-      <file>
-        <name>$PROJ_DIR$\..\..\..\lib\gui\Gui.c</name>
+        <name>$PROJ_DIR$\..\..\tool\ewarm\am335x.icf</name>
       </file>
     </group>
     <group>
@@ -2060,6 +2072,9 @@
         <name>$PROJ_DIR$\..\..\..\lib\platform\pf_edma.c</name>
       </file>
       <file>
+        <name>$PROJ_DIR$\..\..\..\lib\platform\pf_eeprom.c</name>
+      </file>
+      <file>
         <name>$PROJ_DIR$\..\..\..\lib\platform\pf_gpio.c</name>
       </file>
       <file>
@@ -2072,7 +2087,7 @@
         <name>$PROJ_DIR$\..\..\..\lib\platform\pf_int.c</name>
       </file>
       <file>
-        <name>$PROJ_DIR$\..\..\..\lib\platform\pf_key.c</name>
+        <name>$PROJ_DIR$\..\..\..\lib\platform\pf_key_touchpad.c</name>
       </file>
       <file>
         <name>$PROJ_DIR$\..\..\..\lib\platform\pf_lcd.c</name>
@@ -2087,9 +2102,6 @@
         <name>$PROJ_DIR$\..\..\..\lib\platform\pf_norflash.c</name>
       </file>
       <file>
-        <name>$PROJ_DIR$\..\..\..\lib\platform\pf_platform.c</name>
-      </file>
-      <file>
         <name>$PROJ_DIR$\..\..\..\lib\platform\pf_pwmss.c</name>
       </file>
       <file>
@@ -2100,6 +2112,9 @@
       </file>
       <file>
         <name>$PROJ_DIR$\..\..\..\lib\platform\pf_rx8025.c</name>
+      </file>
+      <file>
+        <name>$PROJ_DIR$\..\..\..\lib\platform\pf_spi.c</name>
       </file>
       <file>
         <name>$PROJ_DIR$\..\..\..\lib\platform\pf_sysperf.c</name>
@@ -2226,6 +2241,12 @@
   <group>
     <name>src</name>
     <group>
+      <name>config</name>
+      <file>
+        <name>$PROJ_DIR$\..\..\..\src\mmc_inand_fat\config\ffconf.h</name>
+      </file>
+    </group>
+    <group>
       <name>include</name>
       <file>
         <name>$PROJ_DIR$\..\..\..\src\include\cpld.h</name>
@@ -2235,12 +2256,9 @@
       <name>$PROJ_DIR$\..\..\..\src\mmc_inand_fat\mmc_inand_fat.c</name>
     </file>
     <file>
-      <name>$PROJ_DIR$\..\..\..\src\mmc_inand_fat\ui.c</name>
+      <name>$PROJ_DIR$\..\..\..\src\mmc_inand_fat\platform.c</name>
     </file>
   </group>
-  <file>
-    <name>$PROJ_DIR$\..\..\..\src\mmc_inand_fat\main.c</name>
-  </file>
 </project>
 
 

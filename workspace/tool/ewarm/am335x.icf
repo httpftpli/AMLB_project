@@ -42,7 +42,10 @@ define symbol __ICFEDIT_intvec_start__ = 0xFFFF0000;
 define symbol __ICFEDIT_region_ROM_start__ = 0x00000000;
 define symbol __ICFEDIT_region_ROM_end__   = 0x00000000;
 define symbol __ICFEDIT_region_RAM_start__ = 0x80000000;
-define symbol __ICFEDIT_region_RAM_end__   = 0x87FFFFF8;
+define symbol __ICFEDIT_region_RAM_end__   = 0x87CFFFFF;
+define symbol __ICFEDIT_region_FRAMEBUFFER_start__ = 0x87D00000;
+define symbol __ICFEDIT_region_FRAMEBUFFER_end__   = 0x88000000;
+
 /*-Sizes-*/
 define symbol __ICFEDIT_size_cstack__   = 0x5000;
 define symbol __ICFEDIT_size_svcstack__ = 0x8;
@@ -56,6 +59,7 @@ define symbol __ICFEDIT_size_heap__     = 0x0;
 
 define memory mem with size = 4G;
 define region RAM_region   = mem:[from __ICFEDIT_region_RAM_start__   to __ICFEDIT_region_RAM_end__];
+define region FRAMEBUFFER_region   = mem:[from __ICFEDIT_region_FRAMEBUFFER_start__   to __ICFEDIT_region_FRAMEBUFFER_end__];
 
 define block CSTACK    with alignment = 8, size = __ICFEDIT_size_cstack__   { };
 define block SVC_STACK with alignment = 8, size = __ICFEDIT_size_svcstack__ { };
@@ -64,19 +68,18 @@ define block FIQ_STACK with alignment = 8, size = __ICFEDIT_size_fiqstack__ { };
 define block UND_STACK with alignment = 8, size = __ICFEDIT_size_undstack__ { };
 define block ABT_STACK with alignment = 8, size = __ICFEDIT_size_abtstack__ { };
 define block HEAP      with alignment = 8, size = __ICFEDIT_size_heap__     { };
-define block LCD_FRAMEBUFFER with alignment = 8, size = 0x300000 { };
-
+define block LCD_FRAMEBUFFER with alignment = 1024*1024, size = 3*1024*1024 { };
 
 do not initialize  { section .noinit };
-initialize by copy { readwrite };
+do not initialize  { section LCD_FRAMEBUFFER };
+initialize by copy with packing = zeros{ readwrite };
 
 place in RAM_region   { section SYSTEMSTART };
 place in RAM_region   { readonly };
 place in RAM_region   { readwrite};
 place in RAM_region   { zi };
 place in RAM_region   { block CSTACK, block SVC_STACK, block IRQ_STACK, block FIQ_STACK,
-                        block UND_STACK, block ABT_STACK, block HEAP };
-place in RAM_region   { block LCD_FRAMEBUFFER };                        
-                        
+                        block UND_STACK, block ABT_STACK, block HEAP };                   
+place in FRAMEBUFFER_region   { block LCD_FRAMEBUFFER };                          
 
 define exported symbol __intvec_start = __ICFEDIT_intvec_start__;

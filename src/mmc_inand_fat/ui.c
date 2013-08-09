@@ -2,6 +2,8 @@
 #include "mmath.h"
 #include "pf_timertick.h"
 #include "pf_tsc.h"
+#include "pf_usbmsc.h"
+#include "string.h"
 
 #define MAX_BUTTON_CAPTION   30
 #define MAX_LABEL_CAPTION    100
@@ -21,6 +23,13 @@
 #define ID_TC         13
 
 
+extern BOOL idiskFdisk();
+extern BOOL idiskFormat();
+
+
+typedef struct __fileinfo{
+  char filename[13];
+} MYFILEINFO;
 
 
 typedef void BUTTON_CLICK_HANDLER(void *button,unsigned int stat);
@@ -56,6 +65,9 @@ unsigned int labelindex = 0;
 BUTTON *buttonGroup1[50];
 BUTTON *buttonGroup2[50];
 
+
+TEXTCHAR succesText[] = "SUCCESS";
+TEXTCHAR falseText[] =  "FALSE";
 
 void registButton(BUTTON *button){
    buttonList[buttonindext++] = button;
@@ -175,7 +187,15 @@ void buttonRedraw(const BUTTON *button, unsigned int force) {
 
 void buttonShow(const BUTTON *button){
    buttonRedraw(button,1);
-};
+}
+
+void buttonEnable(BUTTON *button){
+}
+
+
+void buttonDisable(BUTTON *button){
+}
+
 
 void buttonSetCaption(BUTTON *button,TEXTCHAR *caption){
    button->caption = caption;
@@ -234,7 +254,7 @@ unsigned short guiExec(void) {
    unsigned int buttonnow;
    switch (stat) {
    case STAT_NO:
-      if (atomicTestClear(&touched)) {
+      if (atomicTestClear(&g_touched)) {
          buttonnow = touch2buttonindex();
          if (buttonnow != -1) {
             stat = STAT_PUSHDOWN;
@@ -243,24 +263,22 @@ unsigned short guiExec(void) {
                buttonList[buttonnow]->pushed = 1;
                buttonList[buttonnow]->statChanged = 1;
                button = buttonnow;
-               guiRedraw();
             } else {
                buttonList[buttonnow]->pushed = ! buttonList[buttonnow]->pushed;
                buttonList[buttonnow]->statChanged = 1;
-               guiRedraw();
                button = buttonnow;
             }
+            guiRedraw();
             if (buttonList[buttonnow]->handler != NULL) buttonList[buttonnow]->handler(buttonList[buttonnow],buttonList[buttonnow]->pushed);
             return buttonList[buttonnow]->winId;
          }
       }
       break;
    case STAT_PUSHDOWN:
-      if ((!atomicTestClear(&touched)) && (TimerTickGet() - timemark > 150)) {
+      if ((!atomicTestClear(&g_touched)) && (TimerTickGet() - timemark > 150)) {
          if (0 == buttonList[button]->checkable) {
             buttonList[button]->pushed = 0;
             buttonList[button]->statChanged = 1;
-            guiRedraw();
          }
          stat = STAT_FROZE;
          timemark = TimerTickGet();
@@ -274,6 +292,7 @@ case STAT_FROZE:
    default:
       break;
    }
+   guiRedraw();
    return 0;
 }
 
@@ -285,21 +304,73 @@ void labelShow(const LABEL *label) {
 
 TEXTCHAR buff[100];
 
-static void tsbuttonhandler(void * button,unsigned int stat){
-   static unsigned int xxxx = 0;
-   sprintf(buff,"xxxx: %d",xxxx++);
-   labelSetCaption(&statLabel1,buff);
+
+static void idiskfdiskhandler(void *button,unsigned int stat){
+   BOOL r;
+   if (1==stat) {
+      r = idiskFdisk();
+      if (r) {
+         labelSetCaption(&statLabel1,succesText);
+      }else{
+         labelSetCaption(&statLabel1,falseText);
+      }
+   } 
 }
 
 
+static void idiskformathandler(void *button,unsigned int stat){
+   BOOL r;
+   if (1==stat) {
+      r = idiskFormat();
+      if (r) {
+         labelSetCaption(&statLabel1,succesText);
+      }else{
+         labelSetCaption(&statLabel1,falseText);
+      }
+   } 
+}
+
+void hmishow(){  
+   labelShow(&titleLabel);
+   Dis_HLine(0,500,800,C_White);
+   labelShow(&pageLabel);
+   labelShow(&statLabel);
+   labelShow(&statLabel1);
+   for (int i=0;i<NARRAY(frametitles);i++) {
+      labelShow(frametitles+i);
+   }   
+   for (int i=0;i<NARRAY(frames);i++) {
+      labelShow(frames+i);
+   } 
+   for (int i=0;i<NARRAY(burnpagebuttons);i++) {     
+      buttonShow(burnpagebuttons+i);
+   }
+   for (int i=0;i<NARRAY(inandButtons);i++) {
+      buttonShow(inandButtons+i);
+   }
+   for (int i=0;i<NARRAY(udiskButtons);i++) {
+      buttonShow(udiskButtons+i);
+   }
+}
+
+static void tscalhandler(void *button,unsigned int stat){
+   if (1==stat) {
+      while (!TouchCalibrate(1)) ;
+   } 
+   hmishow();
+}
+
+MYFILEINFO udiskfileinfolist[300],idiskfileinfolist[20];
+unsigned int udiskFileCount,idiskFileCount;
+unsigned int ufileindex=-1,ufilegroupindex=0;
 unsigned int ifileindex=-1,ifilegroupindex=0;
-
-
+unsigned int ufilestatchagned = 0,ifilestatchagned=0;
 
 static void idiskbuttonhandler(void *button, unsigned int stat) {
    BUTTON *b = (BUTTON *)button;
    BUTTON **grop;
    static TEXTCHAR buff[100];
+   unsigned int index;
    if (stat == 1) {
       grop = (BUTTON **)(b->group);
       for (int i = 0;; i++) {
@@ -309,10 +380,11 @@ static void idiskbuttonhandler(void *button, unsigned int stat) {
          if (grop[i] != b) {
             grop[i]->pushed = 0;
             grop[i]->statChanged = 1;
-            ifileindex = i;
+         }else{
+            index=i;
          }
       }
-      guiRedraw();
+     ifileindex = index;
    }else{
      ifileindex = -1;
    }
@@ -321,12 +393,61 @@ static void idiskbuttonhandler(void *button, unsigned int stat) {
 }
 
 
-unsigned int ufileindex=0xfffffff,ufilegroupindex=0;
+
+void probUdisk(){
+   static int probed = 0;
+   if ((g_usbMscState == USBMSC_DEVICE_READY)&&(probed==0)) {
+      udiskFileCount = NARRAY(udiskfileinfolist);
+      scan_files("2:/",udiskfileinfolist,&udiskFileCount);
+      probed = 1; 
+      ufilegroupindex = 0 ;
+      ufilestatchagned = 1;       
+   } else if ((g_usbMscState == USBMSC_NO_DEVICE)&&(probed==1)) {
+      probed = 0;
+      ufilegroupindex = 0 ;
+      memset(udiskfileinfolist,0,sizeof udiskfileinfolist ); 
+      udiskFileCount=0;
+      ufilestatchagned = 1;
+   }
+}
+
+void displayUdisk() {
+   if (ufilestatchagned == 1) {
+      ufilestatchagned = 0;
+      for (unsigned int i = 0; i < 12; i++) {
+         if ((ufilegroupindex * 12 + i) > udiskFileCount) {
+            buttonSetCaption(&udiskButtons[ufilegroupindex * 12 + i], NULL);
+            buttonDisable(&udiskButtons[ufilegroupindex * 12 + i]);
+         } else {
+           buttonSetCaption(&udiskButtons[ufilegroupindex * 12 + i],udiskfileinfolist[ufilegroupindex * 12 + i].filename);
+            buttonEnable(&udiskButtons[ufilegroupindex * 12 + i]);
+         }
+      }
+   }
+}
+
+
+
+void probIdisk(){
+   static int probed = 0;
+   if ((g_usbMscState == USBMSC_DEVICE_READY)&&(probed==0)) {
+      udiskFileCount = NARRAY(udiskfileinfolist);
+      scan_files("2:/",udiskfileinfolist,&udiskFileCount);
+      probed = 1; 
+      ufilegroupindex = 0 ; 
+   } else if (g_usbMscState == USBMSC_NO_DEVICE) {
+      probed = 0;
+      ufilegroupindex = 0 ;
+      memset(udiskfileinfolist,0,sizeof udiskfileinfolist ); 
+      udiskFileCount=0;
+   }
+}
+
 
 static void udiskbuttonhandler(void *button, unsigned int stat) {
    BUTTON *b = (BUTTON *)button;
    BUTTON **grop;
-   static TEXTCHAR buff[100];
+   unsigned int index;
    if (stat == 1) {
       grop = (BUTTON **)(b->group);
       for (int i = 0;; i++) {
@@ -336,53 +457,62 @@ static void udiskbuttonhandler(void *button, unsigned int stat) {
          if (grop[i] != b) {
             grop[i]->pushed = 0;
             grop[i]->statChanged = 1;
-            ufileindex = i;
+         }else{
+            index=i;
          }
       }
-      guiRedraw();
+      ufileindex = index;
    }else{
       ufileindex = -1;
    }
-   sprintf(buff,"ufile   %d",ifileindex);
-   labelSetCaption(&statLabel1,buff);
-   
+   if(ufileindex!=-1){
+        labelSetCaption(&statLabel1,udiskfileinfolist[ufilegroupindex*12+ufileindex].filename);
+   }else{
+        labelSetCaption(&statLabel1,NULL);    
+   }  
 }
 
 
+static void udiskdownhandler(void *button,unsigned int stat){
+   if (((udiskFileCount+11)/12-1)>ufilegroupindex) {
+        ufilegroupindex++;
+        ufilestatchagned = 1;      
+   }
+}
 
-void hmishow(){
-   buttonRegistHandler(burnpagebuttons,tsbuttonhandler);
-   labelShow(&titleLabel);
-   Dis_HLine(0,500,800,C_White);
-   labelShow(&pageLabel);
-   labelShow(&statLabel);
-   labelShow(&statLabel1);
+static void udiskuphandler(void *button, unsigned int stat) {
+   if (ufilegroupindex == 0) {
+      return;
+   }
+   ufilegroupindex--;
+   ufilestatchagned = 1;  
+}
+
+void hmiInit(){
+   buttonRegistHandler(burnpagebuttons,tscalhandler);
+   buttonRegistHandler(burnpagebuttons+1,idiskfdiskhandler);
+   buttonRegistHandler(burnpagebuttons+2,idiskformathandler);
+   buttonRegistHandler(burnpagebuttons+8,udiskdownhandler);
+   buttonRegistHandler(burnpagebuttons+7,udiskuphandler);  
    registLabel(&statLabel1);
-   for (int i=0;i<NARRAY(frametitles);i++) {
-      labelShow(frametitles+i);
-   }   
-   for (int i=0;i<NARRAY(frames);i++) {
-      labelShow(frames+i);
-   } 
    for (int i=0;i<NARRAY(burnpagebuttons);i++) {
       burnpagebuttons[i].haveFrame = 1;
-      buttonShow(burnpagebuttons+i);
       registButton(burnpagebuttons+i);
    }
    for (int i=0;i<NARRAY(inandButtons);i++) {
-      buttonShow(inandButtons+i);
       buttonRegistHandler(inandButtons+i,idiskbuttonhandler);
       registButton(inandButtons+i);
       inandButtons[i].group = (unsigned int)buttonGroup1;
       buttonGroup1[i] = inandButtons+i;
    }
    for (int i=0;i<NARRAY(udiskButtons);i++) {
-      buttonShow(udiskButtons+i);
       buttonRegistHandler(udiskButtons+i,udiskbuttonhandler);
       registButton(udiskButtons+i);
       udiskButtons[i].group = (unsigned int)buttonGroup2;
       buttonGroup2[i] = udiskButtons+i;
    }
+   hmishow();
 }
+
 
 

@@ -32,6 +32,7 @@
 #include "lib_gui.h"
 #include "dmtimer.h"
 #include "pf_dmtimer.h"
+#include "algorithm.h"
 /******************************************************************************
 **                      INTERNAL MACRO DEFINITIONS
 *******************************************************************************/
@@ -95,7 +96,7 @@ unsigned char bufmmc1[512*1],bufmmc2[512*1];
 char buffer[1024];
 unsigned int fontloaded = 0;
 
-#define FONT_LOAD_ADDR        0x80000000+128*1024*1024
+#define FONT_LOAD_ADDR        0x80000000+64*1024*1024
 
 void drawText() {
    GUI_SetBkColor(C_TRANSPARENT);
@@ -135,28 +136,21 @@ int main(void) {
 //dmtimerInitForMatch(MODULE_ID_TIMER3,0xffffffff-0x7ffffff,(0xffffffff-0x7ffffff/2),DMTIMER_FLAG_INTENABLE_MATCH);
 
 //////////////////////////////////////////////////////
-   spiFmromInit(fmmirrorbuf, sizeof fmmirrorbuf);
+/*   spiFmromInit(fmmirrorbuf, sizeof fmmirrorbuf);
    spiFmromRead(0, buf, 1);
    spiFmromWren();
    delay(500);
    spiFmromWrite(0, buf, sizeof buf); 
    delay(500);
    spiFmromRead(0, buf, sizeof buf);
-   while (1);
+   while (1);*/
    moduleEnable(MODULE_ID_GPIO0);
-   DCANInit(MODULE_ID_DCAN0, CAN_MODE_NORMAL, 1000000);
    LCDRasterStart();    //lcd
    LCDBackLightON();
    MMCSDP_CtrlInfoInit(&mmcsdctr[0], MODULE_ID_MMCSD0, 48000000, MMCSD_BUSWIDTH_4BIT, 0,
                        &card0, NULL, NULL, NULL);
    MMCSDP_CtrlInit(&mmcsdctr[0]);
    MMCSDP_CardInit(&mmcsdctr[0], MMCSD_CARD_AUTO);
-
-
-   //MMCSDP_Write(&mmcsdctr[0],buf,128*1024-10,4);
-   //memset(buf,0,sizeof buf);
-   //MMCSDP_Read(&mmcsdctr[0],buf,128*1024-10,4);
-   while (1);
    TouchCalibrate(0);
    static FATFS inandfs;
    f_mount(0, &inandfs);
